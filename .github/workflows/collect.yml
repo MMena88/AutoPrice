@@ -1,6 +1,12 @@
 name: Descargar precios DGEHM
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - collector.py
+      - requirements.txt
+      - .github/workflows/collect.yml
   schedule:
     - cron: "30 12 * * *"
   workflow_dispatch:
