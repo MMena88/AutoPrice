@@ -24,12 +24,24 @@ def normalized(value: object) -> str:
 def download_report(page: Page) -> Path:
     try:
         # El visor SSRS de DGEHM suele dejar recursos secundarios pendientes.
-        # Esperar "load" hace que Playwright venza aun cuando el reporte ya está visible.
-        page.goto(REPORT_URL, wait_until="domcontentloaded", timeout=180_000)
-        page.wait_for_timeout(15_000)
+        # Aceptamos la respuesta inicial y damos tiempo al contenido principal.
+        page.goto(REPORT_URL, wait_until="commit", timeout=120_000)
+        try:
+            page.wait_for_load_state("domcontentloaded", timeout=60_000)
+        except Exception:
+            # Detiene imágenes/scripts colgados sin descartar el HTML ya recibido.
+            try:
+                page.evaluate("window.stop()")
+            except Exception:
+                pass
+        page.wait_for_timeout(10_000)
     except Exception:
-        Path("diagnostic.html").write_text(page.content(), encoding="utf-8")
-        page.screenshot(path="diagnostic.png", full_page=True)
+        try:
+            page.evaluate("window.stop()")
+            Path("diagnostic.html").write_text(page.content(), encoding="utf-8")
+            page.screenshot(path="diagnostic.png", full_page=True)
+        except Exception:
+            pass
         raise
 
     contexts = [page, *page.frames]
