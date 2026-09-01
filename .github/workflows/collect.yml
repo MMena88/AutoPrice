@@ -26,6 +26,18 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: playwright install --with-deps chromium
+      - name: Diagnosticar conexión con DGEHM
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import socket
+          host = "sinapp.dgehm.gob.sv"
+          print("DNS:", socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM))
+          PY
+          curl -kIv --connect-timeout 20 --max-time 35 \
+            "https://sinapp.dgehm.gob.sv/drhm/estadisticas.aspx?uid=2"
+          curl -kIv --connect-timeout 20 --max-time 35 \
+            "https://sinapp.dgehm.gob.sv/hidropublicmovil/preciosruta.aspx?i=25"
       - name: Descargar y transformar reporte oficial
         run: python collector.py
         env:
