@@ -183,13 +183,12 @@ def main() -> None:
     if proxy_server:
         if not proxy_server.startswith(("http://", "https://", "socks5://")):
             proxy_server = f"http://{proxy_server}"
-        if not proxy_username or not proxy_password:
-            raise RuntimeError("PROXY_SERVER está definido, pero faltan PROXY_USERNAME o PROXY_PASSWORD")
-        proxy = {
-            "server": proxy_server,
-            "username": proxy_username,
-            "password": proxy_password,
-        }
+        proxy = {"server": proxy_server}
+        if proxy_username or proxy_password:
+            if not proxy_username or not proxy_password:
+                raise RuntimeError("Para un proxy autenticado se requieren usuario y contraseña")
+            proxy["username"] = proxy_username
+            proxy["password"] = proxy_password
         print("Proxy configurado para la conexión con DGEHM")
 
     with sync_playwright() as playwright:
