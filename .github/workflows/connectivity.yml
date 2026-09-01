@@ -1,0 +1,22 @@
+name: Probar redes hacia DGEHM
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/connectivity.yml
+
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Probar puerto HTTPS y respuesta
+        shell: bash
+        run: |
+          echo "Runner: ${{ matrix.os }}"
+          curl -kIv --connect-timeout 20 --max-time 35 \
+            "https://sinapp.dgehm.gob.sv/drhm/estadisticas.aspx?uid=2"
