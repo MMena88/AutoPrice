@@ -176,8 +176,24 @@ def save(rows: list[dict], source: Path) -> None:
 
 
 def main() -> None:
+    proxy_server = os.getenv("PROXY_SERVER", "").strip()
+    proxy_username = os.getenv("PROXY_USERNAME", "").strip()
+    proxy_password = os.getenv("PROXY_PASSWORD", "").strip()
+    proxy = None
+    if proxy_server:
+        if not proxy_server.startswith(("http://", "https://", "socks5://")):
+            proxy_server = f"http://{proxy_server}"
+        if not proxy_username or not proxy_password:
+            raise RuntimeError("PROXY_SERVER está definido, pero faltan PROXY_USERNAME o PROXY_PASSWORD")
+        proxy = {
+            "server": proxy_server,
+            "username": proxy_username,
+            "password": proxy_password,
+        }
+        print("Proxy configurado para la conexión con DGEHM")
+
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        browser = playwright.chromium.launch(headless=True, proxy=proxy)
         context = browser.new_context(accept_downloads=True, ignore_https_errors=os.getenv("DGEHM_IGNORE_HTTPS_ERRORS", "true").lower() == "true")
         page = context.new_page()
         try:
